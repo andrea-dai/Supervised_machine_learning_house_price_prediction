@@ -47,7 +47,6 @@ preprocessor = ColumnTransformer(
     ]
 )
 
-!pip install xgboost
 
 import sys
 !{sys.executable} -m pip install xgboost
