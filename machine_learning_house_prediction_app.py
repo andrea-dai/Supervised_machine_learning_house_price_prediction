@@ -1,99 +1,4 @@
 import streamlit as st
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder, MinMaxScaler
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.impute import SimpleImputer
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.pipeline import make_pipeline
-from sklearn.metrics import mean_squared_error, mean_absolute_error, mean_absolute_percentage_error, r2_score
-from sklearn.model_selection import GridSearchCV
-import numpy as np
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-
-url = "https://drive.google.com/file/d/1mnHCEXUJz5pxyHi41f0OMEFlKvt1sDGn/view?usp=sharing"
-path = 'https://drive.google.com/uc?export=download&id='+url.split('/')[-2]
-training_data = pd.read_csv(path)
-
-training_data.drop(columns = ['Id','Utilities','PoolQC','Alley','Fence','Condition2','BsmtFullBath'],axis=1, inplace=True)
-
-
-
-X = training_data.drop(columns=['SalePrice'])
-y = training_data['SalePrice']
-
-
-# data splitting
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=123)
-
-# building the pipeline
-X_cat = X_train.select_dtypes(exclude="number").copy()
-X_num = X_train.select_dtypes(include="number").copy()
-
-numeric_pipe = make_pipeline(
-    SimpleImputer(strategy="mean"))
- 
-categoric_pipe = make_pipeline(
-    SimpleImputer(strategy="constant", fill_value="N_A"),
-    OneHotEncoder(handle_unknown="ignore")
-)
-
-preprocessor = ColumnTransformer(
-    transformers=[
-        ("num_pipe", numeric_pipe, X_num.columns),
-       ("cat_pipe", categoric_pipe, X_cat.columns),
-    ]
-)
-
-
-import sys
-!{sys.executable} -m pip install xgboost
-
-import xgboost
-print(xgboost.__version__)
-from sklearn.preprocessing import MaxAbsScaler
-from xgboost import XGBRegressor
-from sklearn.feature_selection import SelectKBest, f_regression
-
-
-#model = XGBRegressor(n_estimators=1000, max_depth=7, eta=0.1, subsample=0.7, colsample_bytree=0.8)
-
-full_pipeline = make_pipeline(preprocessor, 
-                              MaxAbsScaler(),
-                              XGBRegressor())
-
-param_grid = {
-    "columntransformer__num_pipe__simpleimputer__strategy":["mean", "median"],
-    "xgbregressor__max_depth":[3,4],
-    "xgbregressor__eta":[0.1,0.15],
-    "xgbregressor__subsample":[0.3,0.4],
-    "xgbregressor__colsample_bytree":[0.3]
-}
-
-xgb_search = GridSearchCV(full_pipeline,
-                      param_grid,
-                      cv=5,
-                      verbose=1)
-
-xgb_search.fit(X_train, y_train)
- 
-
-print(
-        f"""
-        MSE: {mean_squared_error(xgb_search.predict(X_test), y_test)}
-        RMSE: {mean_squared_error(xgb_search.predict(X_test), y_test)**0.5}
-        MAE: {mean_absolute_error(xgb_search.predict(X_test), y_test)}
-        MAPE: {mean_absolute_percentage_error(xgb_search.predict(X_test), y_test)}
-        R2 Score: {r2_score(xgb_search.predict(X_test), y_test)}
-        """
-    )
-# store the trained pipeline
-import pickle
-pickle.dump(xgb_search, 
-            open(file='/Users/ranrandai/Downloads/models/trained_pipe_xgboost.sav', 
-                 mode='wb'))
 
 st.title("Housing Prices Prediction")
  
@@ -102,7 +7,7 @@ st.write("""
 I trained several models to predict the price of a house based on features such as the area of the house and the condition and quality of their different rooms, etc. Finally I choode to use the model based on xgboost to predict the house price""") 
 
 import pickle
-model = pickle.load(open('/Users/ranrandai/Downloads/models/trained_pipe_xgboost.sav', 'rb'))
+model = pickle.load(open('/Users/ranrandai/Downloads/models/trained_pipe_xgboost.sav', 'wb'))
 
 ID = st.number_input("ID")
 MSSubClass = st.number_input("The building class")
