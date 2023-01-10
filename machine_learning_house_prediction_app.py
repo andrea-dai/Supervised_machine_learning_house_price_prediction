@@ -7,7 +7,7 @@ st.write("""
 I trained several models to predict the price of a house based on features such as the area of the house and the condition and quality of their different rooms, etc. Finally I choode to use the model based on xgboost to predict the house price""") 
 
 import pickle
-model = pickle.load(open('/Users/ranrandai/Downloads/models/trained_pipe_xgboost.sav', 'wb'))
+model = pickle.load(open('trained_pipe_xgboost.sav', 'wb'))
 
 ID = st.number_input("ID")
 MSSubClass = st.number_input("The building class")
